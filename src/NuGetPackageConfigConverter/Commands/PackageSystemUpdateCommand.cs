@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
@@ -16,16 +17,18 @@ namespace NuGetPackageConfigConverter
         private readonly IPackageManagerConverter _packageConverter;
         private readonly DTE2 _dte;
 
-        private PackageSystemUpdateCommand(Package package, IPackageManagerConverter converter)
+        private PackageSystemUpdateCommand(Package package)
         {
             if (package == null)
             {
                 throw new ArgumentNullException(nameof(package));
             }
 
-            _packageConverter = converter;
             _package = package;
             _dte = ServiceProvider.GetService(typeof(DTE)) as DTE2;
+
+            var container = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            _packageConverter = container.GetService<IPackageManagerConverter>();
 
             var commandService = ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (commandService != null)
@@ -43,9 +46,7 @@ namespace NuGetPackageConfigConverter
 
         public static void Initialize(Package package)
         {
-            var packageConverter = Clide.ServiceLocator.GlobalLocator.GetService<IPackageManagerConverter>();
-
-            Instance = new PackageSystemUpdateCommand(package, packageConverter);
+            Instance = new PackageSystemUpdateCommand(package);
         }
 
         private void MenuItemBeforeQueryStatus(object sender, EventArgs e)

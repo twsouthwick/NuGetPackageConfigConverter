@@ -1,6 +1,9 @@
 ﻿using EnvDTE;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Versioning;
 
@@ -12,16 +15,10 @@ namespace NuGetPackageConfigConverter
     {
         private readonly dynamic _parser;
 
+        [ImportingConstructor]
         public VsFrameworkParserProxy()
         {
-            var frameworkParser = AppDomain.CurrentDomain.GetAssemblies()
-                .Select(a => a.GetType("NuGet.VisualStudio.IVsFrameworkParser", false))
-                .FirstOrDefault(a => a != null);
-
-            if (frameworkParser != null)
-            {
-                _parser = Clide.ServiceLocator.GlobalLocator.GetService(frameworkParser);
-            }
+            _parser = GetService("NuGet.VisualStudio.IVsFrameworkParser");
         }
 
         public FrameworkName GetFrameworkName(Project project)
@@ -60,5 +57,22 @@ namespace NuGetPackageConfigConverter
             return (string)_parser.GetShortFrameworkName(tfm) ?? string.Empty;
         }
 
+        private static dynamic GetService(string name)
+        {
+            var model = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+            var frameworkParser = AppDomain.CurrentDomain.GetAssemblies()
+                .Select(a => a.GetType(name, false))
+                .FirstOrDefault(a => a != null);
+
+            Debug.Assert(model != null);
+            Debug.Assert(frameworkParser != null);
+
+            if (frameworkParser != null)
+            {
+                return model?.DefaultExportProvider.GetExportedValueOrDefault<object>(frameworkParser.FullName);
+            }
+
+            return null;
+        }
     }
 }
