@@ -12,7 +12,7 @@ namespace NuGetPackageConfigConverter
     [Export(typeof(IConverterViewProvider))]
     public class DialogWindowConverterViewProvider : IConverterViewProvider
     {
-        public Task ShowAsync(Solution sln, Action<ConverterUpdateViewModel> action)
+        public async Task ShowAsync(Solution sln, Action<ConverterUpdateViewModel, CancellationToken> action)
         {
             if (IsUnsaved(sln))
             {
@@ -21,20 +21,60 @@ namespace NuGetPackageConfigConverter
             }
 
             var model = new ConverterUpdateViewModel();
-            var viewer = new ConvertProgressViewer(model);
 
             using (var cts = new CancellationTokenSource())
             {
+                // This is run on the UI thread, so we capture this before we do anything else
+                var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+
+                var viewer = new ConvertProgressViewer(model, cts.Cancel);
+                var tcs = new TaskCompletionSource<bool>();
+
                 var task = Task.Run(() =>
                 {
-                    action(model);
-
-                    cts.Cancel();
+                    try
+                    {
+                        action(model, cts.Token);
+                        tcs.SetResult(true);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        tcs.SetCanceled();
+                    }
+                    catch (Exception e)
+                    {
+                        tcs.SetException(e);
+                    }
+                    finally
+                    {
+                        cts.Cancel();
+                    }
                 });
 
-                viewer.ShowModal(cts.Token);
+                var result = viewer.ShowModal(cts.Token);
 
-                MessageDialog.Show("Conversion complete", "Conversion to project.json dependency is complete. Some files may have been removed by uninstalling the packages and not added back. Please ensure project builds and runs before committing any changes.", MessageDialogCommandSet.Ok);
+                await tcs.Task.ContinueWith(r =>
+                {
+                    if (r.IsCanceled)
+                    {
+                        MessageDialog.Show("Conversion incomplete", "Conversion to project.json dependency was canceled. Please revert any changes and try again.", MessageDialogCommandSet.Ok);
+                    }
+                    else if (r.IsFaulted)
+                    {
+                        const string url = "https://github.com/twsouthwick/NuGetPackageConfigConverter/";
+
+                        if (MessageDialog.Show("Conversion failed", $"An unexpected error occured. Please open an issue at {url} with the contents on the clipboard. Press OK to be taken to the issue tracker.", MessageDialogCommandSet.OkCancel) == MessageDialogCommand.Ok)
+                        {
+                            System.Windows.Clipboard.SetText(r.Exception?.ToString() ?? "No exception");
+                            System.Diagnostics.Process.Start($"{url}issues/new");
+                        }
+                    }
+                    else
+                    {
+                        MessageDialog.Show("Conversion complete", "Conversion to project.json dependency is complete. Some files may have been removed by uninstalling the packages and not added back. Please ensure project builds and runs before committing any changes.", MessageDialogCommandSet.Ok);
+                    }
+                }, taskScheduler);
+            }
         }
 
         private static bool IsUnsaved(Solution sln)

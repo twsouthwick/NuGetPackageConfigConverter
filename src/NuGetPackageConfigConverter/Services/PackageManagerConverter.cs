@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NuGetPackageConfigConverter
@@ -38,7 +39,7 @@ namespace NuGetPackageConfigConverter
 
         public Task ConvertAsync(Solution sln)
         {
-            return _converterViewProvider.ShowAsync(sln, model =>
+            return _converterViewProvider.ShowAsync(sln, (model, token) =>
             {
                 var items = sln.Projects
                     .OfType<Project>()
@@ -50,21 +51,25 @@ namespace NuGetPackageConfigConverter
                 model.IsIndeterminate = false;
                 model.Count = 1;
 
-                var packages = RemoveAndCachePackages(items, model);
+                var packages = RemoveAndCachePackages(items, model, token);
+
+                token.ThrowIfCancellationRequested();
 
                 model.Status = "Restarting solution";
                 RefreshSolution(sln);
 
-                InstallPackages(sln.Projects, packages, model);
+                InstallPackages(sln.Projects, packages, model, token);
             });
         }
 
-        private IDictionary<string, IEnumerable<PackageConfigEntry>> RemoveAndCachePackages(IEnumerable<KeyValuePair<Project, ProjectItem>> items, ConverterUpdateViewModel model)
+        private IDictionary<string, IEnumerable<PackageConfigEntry>> RemoveAndCachePackages(IEnumerable<KeyValuePair<Project, ProjectItem>> items, ConverterUpdateViewModel model, CancellationToken token)
         {
             var installedPackages = new Dictionary<string, IEnumerable<PackageConfigEntry>>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var item in items)
             {
+                token.ThrowIfCancellationRequested();
+
                 var project = item.Key;
                 var config = item.Value;
 
@@ -75,7 +80,7 @@ namespace NuGetPackageConfigConverter
                 installedPackages.Add(project.FullName, packages);
                 _restorer.RestorePackages(project);
 
-                if (!RemovePackages(project, packages.Select(p => p.Id)))
+                if (!RemovePackages(project, packages.Select(p => p.Id), token))
                 {
                     // Add warning that forcing deletion of package.config
                     config.Delete();
@@ -117,8 +122,9 @@ namespace NuGetPackageConfigConverter
         /// </summary>
         /// <param name="project"></param>
         /// <param name="ids"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        private bool RemovePackages(Project project, IEnumerable<string> ids)
+        private bool RemovePackages(Project project, IEnumerable<string> ids, CancellationToken token)
         {
             var retryCount = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             var packages = new Queue<string>(ids);
@@ -126,6 +132,8 @@ namespace NuGetPackageConfigConverter
 
             while (packages.Count > 0)
             {
+                token.ThrowIfCancellationRequested();
+
                 var package = packages.Dequeue();
 
                 try
@@ -177,10 +185,12 @@ namespace NuGetPackageConfigConverter
             sln.Open(path);
         }
 
-        private void InstallPackages(Projects projects, IDictionary<string, IEnumerable<PackageConfigEntry>> installedPackages, ConverterUpdateViewModel model)
+        private void InstallPackages(Projects projects, IDictionary<string, IEnumerable<PackageConfigEntry>> installedPackages, ConverterUpdateViewModel model, CancellationToken token)
         {
             foreach (Project project in projects)
             {
+                token.ThrowIfCancellationRequested();
+
                 IEnumerable<PackageConfigEntry> packages;
                 if (installedPackages.TryGetValue(project.FullName, out packages))
                 {
