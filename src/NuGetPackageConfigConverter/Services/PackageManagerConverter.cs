@@ -9,11 +9,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NuGetPackageConfigConverter.Commands
+namespace NuGetPackageConfigConverter
 {
     [PartCreationPolicy(CreationPolicy.Shared)]
-    [Export(typeof(PackageManagerConverter))]
-    public class PackageManagerConverter
+    [Export(typeof(IPackageManagerConverter))]
+    public class PackageManagerConverter : IPackageManagerConverter
     {
         private readonly IVsPackageInstaller _installer;
         private readonly IVsPackageUninstaller _uninstaller;
@@ -22,7 +22,12 @@ namespace NuGetPackageConfigConverter.Commands
         private readonly IConverterViewProvider _converterViewProvider;
 
         [ImportingConstructor]
-        public PackageManagerConverter(IConverterViewProvider converterViewProvider, IVsPackageInstaller installer, IVsPackageUninstaller uninstaller, IVsPackageRestorer restorer, IVsFrameworkParser frameworkParser)
+        public PackageManagerConverter(
+            IConverterViewProvider converterViewProvider,
+            IVsPackageInstaller installer,
+            IVsPackageUninstaller uninstaller,
+            IVsPackageRestorer restorer,
+            IVsFrameworkParser frameworkParser)
         {
             _converterViewProvider = converterViewProvider;
             _installer = installer;
@@ -31,12 +36,11 @@ namespace NuGetPackageConfigConverter.Commands
             _frameworkParser = frameworkParser;
         }
 
-        public Task ConvertAsync(EnvDTE80.DTE2 dte)
+        public Task ConvertAsync(Solution sln)
         {
-
             return _converterViewProvider.ShowAsync(model =>
             {
-                var items = dte.Solution.Projects
+                var items = sln.Projects
                     .OfType<Project>()
                     .Select(p => new { Project = p, Config = GetPackageConfig(p) })
                     .Where(p => p.Config != null)
@@ -49,9 +53,9 @@ namespace NuGetPackageConfigConverter.Commands
                 var packages = RemoveAndCachePackages(items, model);
 
                 model.Status = "Restarting solution";
-                RefreshSolution(dte);
+                RefreshSolution(sln);
 
-                InstallPackages(dte, packages, model);
+                InstallPackages(sln.Projects, packages, model);
             });
         }
 
@@ -166,16 +170,16 @@ namespace NuGetPackageConfigConverter.Commands
 
         private static ProjectItem GetPackageConfig(Project project) => GetProjectItem(project.ProjectItems, "packages.config");
 
-        private static void RefreshSolution(EnvDTE80.DTE2 dte)
+        private static void RefreshSolution(Solution sln)
         {
-            var sln = dte.Solution.FullName;
-            dte.Solution.Close();
-            dte.Solution.Open(sln);
+            var path = sln.FullName;
+            sln.Close();
+            sln.Open(path);
         }
 
-        private void InstallPackages(EnvDTE80.DTE2 dte, IDictionary<string, IEnumerable<PackageConfigEntry>> installedPackages, ConverterUpdateViewModel model)
+        private void InstallPackages(Projects projects, IDictionary<string, IEnumerable<PackageConfigEntry>> installedPackages, ConverterUpdateViewModel model)
         {
-            foreach (Project project in dte.Solution.Projects)
+            foreach (Project project in projects)
             {
                 IEnumerable<PackageConfigEntry> packages;
                 if (installedPackages.TryGetValue(project.FullName, out packages))

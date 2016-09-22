@@ -1,7 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
-using NuGetPackageConfigConverter.Commands;
 using System;
 using System.ComponentModel.Design;
 
@@ -14,10 +13,10 @@ namespace NuGetPackageConfigConverter
         public static readonly Guid CommandSet = new Guid("53c7366b-270d-4a41-afb7-ffcf007534a2");
 
         private readonly Package _package;
-        private readonly PackageManagerConverter _packageConverter;
+        private readonly IPackageManagerConverter _packageConverter;
         private readonly DTE2 _dte;
 
-        private PackageSystemUpdateCommand(Package package, PackageManagerConverter converter)
+        private PackageSystemUpdateCommand(Package package, IPackageManagerConverter converter)
         {
             if (package == null)
             {
@@ -44,7 +43,7 @@ namespace NuGetPackageConfigConverter
 
         public static void Initialize(Package package)
         {
-            var packageConverter = Clide.ServiceLocator.GlobalLocator.GetService<PackageManagerConverter>();
+            var packageConverter = Clide.ServiceLocator.GlobalLocator.GetService<IPackageManagerConverter>();
 
             Instance = new PackageSystemUpdateCommand(package, packageConverter);
         }
@@ -58,7 +57,7 @@ namespace NuGetPackageConfigConverter
 
         private async void MenuItemCallback(object sender, EventArgs e)
         {
-            await _packageConverter.ConvertAsync(_dte);
+            await _packageConverter.ConvertAsync(_dte.Solution);
         }
     }
 }
