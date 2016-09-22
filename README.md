@@ -3,15 +3,11 @@
 <!-- Replace this badge with your own-->
 [![Build status](https://ci.appveyor.com/api/projects/status/q1mkuttpcf3a3c03?svg=true)](https://ci.appveyor.com/project/twsouthwick/nugetpackageconfigconverter)
 
-<!-- Update the VS Gallery link after you upload the VSIX-->
-<!-- Download this extension from the [VS Gallery](https://visualstudiogallery.msdn.microsoft.com/[GuidFromGallery]) -->
-Download this extension from the [CI build](http://vsixgallery.com/extension/NuGetPackageConfigConverter.Taylor%20Southwick.dd0141da-d26f-4013-8b78-72723a313486/).
-
-Visual Studio Gallery link coming soon...
+Download this extension from the [VS Gallery](https://visualstudiogallery.msdn.microsoft.com/8e8e8c73-e874-4180-9a44-1c9ebffd308d) or the [CI build](http://vsixgallery.com/extension/NuGetPackageConfigConverter.Taylor%20Southwick.dd0141da-d26f-4013-8b78-72723a313486/).
 
 ---------------------------------------
 
-This will converts projects that are using NuGet v2 (ie `packages.config`) to NuGet v3 (ie `project.json`). There are many benefits
+This will convert projects that are using NuGet v2 (ie `packages.config`) to NuGet v3 (ie `project.json`). There are many benefits
 to using `project.json` even in non-.NET Core projects. Some of them include:
 
 - Transitive dependencies are automatically included - you only need to include the dependencies you need
