@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.PlatformUI;
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,10 +14,10 @@ namespace NuGetPackageConfigConverter
     {
         public Task ShowAsync(Solution sln, Action<ConverterUpdateViewModel> action)
         {
-            if (!sln.Saved)
+            if (IsUnsaved(sln))
             {
-                MessageDialog.Show("Save before conversion.", "Solution needs to be saved before converting to project.json", MessageDialogCommandSet.Ok);
-                return Task.CompletedTask;
+                MessageDialog.Show("Save before conversion.", "Solution and projects needs to be saved before converting to project.json", MessageDialogCommandSet.Ok);
+                return;
             }
 
             var model = new ConverterUpdateViewModel();
@@ -34,9 +35,16 @@ namespace NuGetPackageConfigConverter
                 viewer.ShowModal(cts.Token);
 
                 MessageDialog.Show("Conversion complete", "Conversion to project.json dependency is complete. Some files may have been removed by uninstalling the packages and not added back. Please ensure project builds and runs before committing any changes.", MessageDialogCommandSet.Ok);
+        }
+
+        private static bool IsUnsaved(Solution sln)
+        {
+            if (!sln.Saved)
+            {
+                return true;
             }
 
-            return Task.CompletedTask;
+            return sln.Projects.OfType<Project>().Any(p => !p.Saved);
         }
     }
 }
