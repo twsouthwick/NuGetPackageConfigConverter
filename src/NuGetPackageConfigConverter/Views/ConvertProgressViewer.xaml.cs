@@ -17,8 +17,6 @@ namespace NuGetPackageConfigConverter
             {
                 ShowModal();
             }
-
-            MessageDialog.Show("Conversion complete", "Conversion to project.json dependency is complete. Some files may have been removed by uninstalling the packages and not added back. Please ensure project builds and runs before committing any changes.", MessageDialogCommandSet.Ok);
         }
     }
 }

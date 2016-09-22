@@ -1,10 +1,11 @@
-﻿using System;
+﻿using EnvDTE;
+using System;
 using System.Threading.Tasks;
 
 namespace NuGetPackageConfigConverter
 {
     public interface IConverterViewProvider
     {
-        Task ShowAsync(Action<ConverterUpdateViewModel> model);
+        Task ShowAsync(Solution sln, Action<ConverterUpdateViewModel> model);
     }
 }

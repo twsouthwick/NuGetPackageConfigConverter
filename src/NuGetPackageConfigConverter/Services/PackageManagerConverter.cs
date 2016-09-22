@@ -38,7 +38,7 @@ namespace NuGetPackageConfigConverter
 
         public Task ConvertAsync(Solution sln)
         {
-            return _converterViewProvider.ShowAsync(model =>
+            return _converterViewProvider.ShowAsync(sln, model =>
             {
                 var items = sln.Projects
                     .OfType<Project>()
