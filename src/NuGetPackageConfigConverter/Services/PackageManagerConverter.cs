@@ -198,24 +198,31 @@ namespace NuGetPackageConfigConverter
             {
                 token.ThrowIfCancellationRequested();
 
-                IEnumerable<PackageConfigEntry> packages;
-                if (installedPackages.TryGetValue(project.FullName, out packages))
+                try
                 {
-                    model.Status = $"Adding packages back via project.json: {project.Name}";
-
-                    foreach (var package in packages)
+                    IEnumerable<PackageConfigEntry> packages;
+                    if (installedPackages.TryGetValue(project.FullName, out packages))
                     {
-                        try
-                        {
-                            _installer.InstallPackage(null, project, package.Id, package.Version, false);
-                        }
-                        catch (Exception e)
-                        {
-                            Trace.WriteLine(e);
-                        }
-                    }
+                        model.Status = $"Adding packages back via project.json: {project.Name}";
 
-                    model.Count++;
+                        foreach (var package in packages)
+                        {
+                            try
+                            {
+                                _installer.InstallPackage(null, project, package.Id, package.Version, false);
+                            }
+                            catch (Exception e)
+                            {
+                                Trace.WriteLine(e);
+                            }
+                        }
+
+                        model.Count++;
+                    }
+                }
+                catch (NotImplementedException e)
+                {
+                    Trace.WriteLine(e);
                 }
             }
         }
