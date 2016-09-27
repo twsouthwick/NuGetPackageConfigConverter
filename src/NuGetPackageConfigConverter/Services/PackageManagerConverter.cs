@@ -77,12 +77,19 @@ namespace NuGetPackageConfigConverter
 
                 var packages = PackageConfigEntry.ParseFile(config.FileNames[0]);
 
-                installedPackages.Add(project.FullName, packages);
-                _restorer.RestorePackages(project);
-
-                if (!RemovePackages(project, packages.Select(p => p.Id), token))
+                if (packages.Any())
                 {
-                    // Add warning that forcing deletion of package.config
+                    installedPackages.Add(project.FullName, packages);
+                    _restorer.RestorePackages(project);
+
+                    if (!RemovePackages(project, packages.Select(p => p.Id), token))
+                    {
+                        // Add warning that forcing deletion of package.config
+                        config.Delete();
+                    }
+                }
+                else
+                {
                     config.Delete();
                 }
 
