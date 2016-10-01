@@ -6,6 +6,7 @@ namespace NuGetPackageConfigConverter
     public interface IPackageManagerConverter
     {
         Task ConvertAsync(Solution sln);
-        bool HasPackageConfig(Projects projects);
+
+        bool HasPackageConfig(Solution sln);
     }
 }

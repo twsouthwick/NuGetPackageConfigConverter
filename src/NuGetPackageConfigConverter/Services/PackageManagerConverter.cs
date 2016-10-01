@@ -41,7 +41,7 @@ namespace NuGetPackageConfigConverter
         {
             return _converterViewProvider.ShowAsync(sln, (model, token) =>
             {
-                var items = sln.Projects
+                var items = sln.GetProjects()
                     .OfType<Project>()
                     .Select(p => new { Project = p, Config = GetPackageConfig(p) })
                     .Where(p => p.Config != null)
@@ -58,7 +58,7 @@ namespace NuGetPackageConfigConverter
                 model.Status = "Restarting solution";
                 RefreshSolution(sln);
 
-                InstallPackages(sln.Projects, packages, model, token);
+                InstallPackages(sln, packages, model, token);
             });
         }
 
@@ -170,9 +170,9 @@ namespace NuGetPackageConfigConverter
             return !retryCount.Values.Any(v => v >= maxRetry);
         }
 
-        public bool HasPackageConfig(Projects projects)
+        public bool HasPackageConfig(Solution sln)
         {
-            foreach (Project project in projects)
+            foreach (var project in sln.GetProjects())
             {
                 if (GetPackageConfig(project) != null)
                 {
@@ -192,9 +192,9 @@ namespace NuGetPackageConfigConverter
             sln.Open(path);
         }
 
-        private void InstallPackages(Projects projects, IDictionary<string, IEnumerable<PackageConfigEntry>> installedPackages, ConverterUpdateViewModel model, CancellationToken token)
+        private void InstallPackages(Solution sln, IDictionary<string, IEnumerable<PackageConfigEntry>> installedPackages, ConverterUpdateViewModel model, CancellationToken token)
         {
-            foreach (Project project in projects)
+            foreach (var project in sln.GetProjects())
             {
                 token.ThrowIfCancellationRequested();
 

@@ -61,6 +61,7 @@
     <Compile Include="Views\ConvertProgressViewer.xaml.cs">
       <DependentUpon>ConvertProgressViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="VSExtensions.cs" />
     <Compile Include="VSPackage.cs" />
   </ItemGroup>
   <ItemGroup>
