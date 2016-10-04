@@ -236,7 +236,7 @@ namespace NuGetPackageConfigConverter
 
             foreach (ProjectItem item in items)
             {
-                if (string.Equals(name, Path.GetFileName(item.Name), StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(name, item.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     return item;
                 }
