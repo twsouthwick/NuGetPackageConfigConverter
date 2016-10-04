@@ -55,7 +55,7 @@ namespace NuGetPackageConfigConverter
 
                 token.ThrowIfCancellationRequested();
 
-                model.Status = "Restarting solution";
+                model.Status = "Reloading solution";
                 RefreshSolution(sln);
 
                 InstallPackages(sln, packages, model, token);
