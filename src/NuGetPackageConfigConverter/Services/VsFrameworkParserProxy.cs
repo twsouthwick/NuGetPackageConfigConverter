@@ -4,11 +4,15 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.Versioning;
 
 namespace NuGetPackageConfigConverter
 {
+    /// <summary>
+    /// A proxy for NuGet.VisualStudio.IVsFrameworkParser that is not publicly available
+    /// </summary>
+    /// <remarks>This may break on later releases of Visual Studio or NuGet package manager. If this breaks, the resulting project.json will not have a TFM</remarks>
+    /// <see cref="https://github.com/NuGet/NuGet.Client/blob/4cccb13833ad29d6a0bcff055460d964f1b49cfe/src/NuGet.Clients/VisualStudio/Extensibility/IVsFrameworkParser.cs"/>
     [PartCreationPolicy(CreationPolicy.Shared)]
     [Export(typeof(IVsFrameworkParser))]
     internal class VsFrameworkParserProxy : IVsFrameworkParser
@@ -60,19 +64,11 @@ namespace NuGetPackageConfigConverter
         private static dynamic GetService(string name)
         {
             var model = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
-            var frameworkParser = AppDomain.CurrentDomain.GetAssemblies()
-                .Select(a => a.GetType(name, false))
-                .FirstOrDefault(a => a != null);
+            var parser = model.DefaultExportProvider.GetExportedValueOrDefault<object>(name);
 
-            Debug.Assert(model != null);
-            Debug.Assert(frameworkParser != null);
+            Debug.Assert(parser != null);
 
-            if (frameworkParser != null)
-            {
-                return model?.DefaultExportProvider.GetExportedValueOrDefault<object>(frameworkParser.FullName);
-            }
-
-            return null;
+            return parser;
         }
     }
 }
