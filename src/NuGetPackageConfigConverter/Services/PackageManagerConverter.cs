@@ -37,15 +37,28 @@ namespace NuGetPackageConfigConverter
             _frameworkParser = frameworkParser;
         }
 
+        public bool NeedsConversion(Solution sln) => HasPackageConfig(sln) || !HasProjectJson(sln);
+
         public Task ConvertAsync(Solution sln)
         {
             return _converterViewProvider.ShowAsync(sln, (model, token) =>
             {
-                var items = sln.GetProjects()
-                    .OfType<Project>()
-                    .Select(p => new { Project = p, Config = GetPackageConfig(p) })
+                var projects = sln.GetProjects()
+                    .Select(p => new
+                    {
+                        Project = p,
+                        Config = GetPackageConfig(p),
+                        ProjectJson = GetProjectJson(p)
+                    })
+                    .ToList();
+
+                var items = projects
                     .Where(p => p.Config != null)
                     .ToDictionary(p => p.Project, p => p.Config);
+
+                var needsProjectJson = projects
+                    .Where(p => p.ProjectJson == null)
+                    .Select(p => p.Project);
 
                 model.Total = items.Count * 2 + 1;
                 model.IsIndeterminate = false;
@@ -55,11 +68,25 @@ namespace NuGetPackageConfigConverter
 
                 token.ThrowIfCancellationRequested();
 
+                AddProjectJson(needsProjectJson, token);
+
                 model.Status = "Reloading solution";
                 RefreshSolution(sln);
 
                 InstallPackages(sln, packages, model, token);
             });
+        }
+
+        private void AddProjectJson(IEnumerable<Project> projects, CancellationToken token)
+        {
+            foreach (var project in projects)
+            {
+                token.ThrowIfCancellationRequested();
+
+                var path = CreateProjectJson(project);
+                project.ProjectItems.AddFromFile(path);
+                project.Save();
+            }
         }
 
         private IDictionary<string, IEnumerable<PackageConfigEntry>> RemoveAndCachePackages(IEnumerable<KeyValuePair<Project, ProjectItem>> items, ConverterUpdateViewModel model, CancellationToken token)
@@ -93,8 +120,6 @@ namespace NuGetPackageConfigConverter
                     config.Delete();
                 }
 
-                var path = CreateProjectJson(project);
-                project.ProjectItems.AddFromFile(path);
                 project.Save();
 
                 model.Count++;
@@ -170,7 +195,7 @@ namespace NuGetPackageConfigConverter
             return !retryCount.Values.Any(v => v >= maxRetry);
         }
 
-        public bool HasPackageConfig(Solution sln)
+        private static bool HasPackageConfig(Solution sln)
         {
             foreach (var project in sln.GetProjects())
             {
@@ -182,6 +207,8 @@ namespace NuGetPackageConfigConverter
 
             return false;
         }
+
+        private static bool HasProjectJson(Solution sln) => sln.GetProjects().All(p => GetProjectJson(p) != null);
 
         private static ProjectItem GetPackageConfig(Project project) => GetProjectItem(project.ProjectItems, "packages.config");
 
@@ -225,6 +252,19 @@ namespace NuGetPackageConfigConverter
                     Trace.WriteLine(e);
                 }
             }
+        }
+
+        private static ProjectItem GetProjectJson(Project project)
+        {
+            var items = project?.ProjectItems;
+
+            if (project == null || items == null)
+            {
+                return null;
+            }
+
+            return GetProjectItem(items, "project.json")
+                ?? GetProjectItem(items, $"{project.Name}.project.json");
         }
 
         private static ProjectItem GetProjectItem(ProjectItems items, string name)

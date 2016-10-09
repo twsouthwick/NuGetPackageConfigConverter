@@ -7,6 +7,6 @@ namespace NuGetPackageConfigConverter
     {
         Task ConvertAsync(Solution sln);
 
-        bool HasPackageConfig(Solution sln);
+        bool NeedsConversion(Solution sln);
     }
 }

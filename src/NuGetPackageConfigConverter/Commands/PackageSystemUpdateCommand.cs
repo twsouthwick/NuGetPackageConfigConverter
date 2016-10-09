@@ -53,7 +53,7 @@ namespace NuGetPackageConfigConverter
         {
             var item = (OleMenuCommand)sender;
 
-            item.Visible = _packageConverter.HasPackageConfig(_dte.Solution);
+            item.Visible = _packageConverter.NeedsConversion(_dte.Solution);
         }
 
         private async void MenuItemCallback(object sender, EventArgs e)
