@@ -1,5 +1,4 @@
 ﻿using EnvDTE;
-using EnvDTE80;
 using System;
 using System.Collections.Generic;
 
@@ -7,11 +6,13 @@ namespace NuGetPackageConfigConverter
 {
     internal static class VSExtensions
     {
+        private const string vsProjectKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
+
         public static IEnumerable<Project> GetProjects(this Solution sln)
         {
             foreach (Project project in sln.Projects)
             {
-                if (string.Equals(project.Kind, ProjectKinds.vsProjectKindSolutionFolder, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(project.Kind, vsProjectKindSolutionFolder, StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var prj in GetSolutionFolderProjects(project))
                     {
@@ -36,7 +37,7 @@ namespace NuGetPackageConfigConverter
                     continue;
                 }
 
-                if (subProject.Kind == ProjectKinds.vsProjectKindSolutionFolder)
+                if (subProject.Kind == vsProjectKindSolutionFolder)
                 {
                     foreach (var prj in GetSolutionFolderProjects(subProject))
                     {
