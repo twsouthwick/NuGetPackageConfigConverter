@@ -83,9 +83,13 @@ namespace NuGetPackageConfigConverter
             {
                 token.ThrowIfCancellationRequested();
 
-                var path = CreateProjectJson(project);
-                project.ProjectItems.AddFromFile(path);
-                project.Save();
+                // If a project does not have a full name (a path), then we will skip it. Some project types, like "Miscellaneous Files" fit this case
+                if (!string.IsNullOrEmpty(project.FullName))
+                {
+                    var path = CreateProjectJson(project);
+                    project.ProjectItems.AddFromFile(path);
+                    project.Save();
+                }
             }
         }
 
