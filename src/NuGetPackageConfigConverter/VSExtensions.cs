@@ -16,10 +16,13 @@ namespace NuGetPackageConfigConverter
                 {
                     foreach (var prj in GetSolutionFolderProjects(project))
                     {
-                        yield return prj;
+                        if (!string.IsNullOrEmpty(prj.FullName))
+                        {
+                            yield return prj;
+                        }
                     }
                 }
-                else
+                else if (!string.IsNullOrEmpty(project.FullName))
                 {
                     yield return project;
                 }
