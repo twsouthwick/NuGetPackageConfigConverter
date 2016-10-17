@@ -65,8 +65,15 @@ namespace NuGetPackageConfigConverter
 
                         if (MessageDialog.Show("Conversion failed", $"An unexpected error occured. Please open an issue at {url} with the contents on the clipboard. Press OK to be taken to the issue tracker.", MessageDialogCommandSet.OkCancel) == MessageDialogCommand.Ok)
                         {
-                            System.Windows.Clipboard.SetText(r.Exception?.ToString() ?? "No exception");
-                            System.Diagnostics.Process.Start($"{url}issues/new");
+                            var error = r.Exception?.ToString();
+
+                            if (string.IsNullOrEmpty(error))
+                            {
+                                System.Windows.Clipboard.SetText(error);
+#if !DEBUG
+                                System.Diagnostics.Process.Start($"{url}issues/new");
+#endif
+                            }
                         }
                     }
                     else
