@@ -67,7 +67,7 @@ namespace NuGetPackageConfigConverter
                         {
                             var error = r.Exception?.ToString();
 
-                            if (string.IsNullOrEmpty(error))
+                            if (!string.IsNullOrEmpty(error))
                             {
                                 System.Windows.Clipboard.SetText(error);
 #if !DEBUG
