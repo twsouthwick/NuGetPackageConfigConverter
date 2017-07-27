@@ -16,7 +16,7 @@ namespace NuGetPackageConfigConverter
         {
             if (IsUnsaved(sln))
             {
-                MessageDialog.Show("Save before conversion.", "Solution and projects needs to be saved before converting to project.json", MessageDialogCommandSet.Ok);
+                MessageDialog.Show("Save before conversion.", "Solution and projects needs to be saved before updating package format", MessageDialogCommandSet.Ok);
                 return;
             }
 
@@ -57,7 +57,7 @@ namespace NuGetPackageConfigConverter
                 {
                     if (r.IsCanceled)
                     {
-                        MessageDialog.Show("Conversion incomplete", "Conversion to project.json dependency was canceled. Please revert any changes and try again.", MessageDialogCommandSet.Ok);
+                        MessageDialog.Show("Conversion incomplete", "Package dependency update was canceled. Please revert any changes and try again.", MessageDialogCommandSet.Ok);
                     }
                     else if (r.IsFaulted)
                     {
@@ -78,7 +78,7 @@ namespace NuGetPackageConfigConverter
                     }
                     else
                     {
-                        MessageDialog.Show("Conversion complete", "Conversion to project.json dependency is complete. Some files may have been removed by uninstalling the packages and not added back. Please ensure project builds and runs before committing any changes.", MessageDialogCommandSet.Ok);
+                        MessageDialog.Show("Conversion complete", "Package dependency update is complete. Some files may have been removed by uninstalling the packages and not added back. Please ensure project builds and runs before committing any changes.", MessageDialogCommandSet.Ok);
                     }
                 }, taskScheduler);
             }

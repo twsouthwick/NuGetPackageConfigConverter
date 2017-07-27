@@ -19,19 +19,13 @@ namespace NuGetPackageConfigConverter
 
         private PackageSystemUpdateCommand(Package package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            _package = package;
+            _package = package ?? throw new ArgumentNullException(nameof(package));
             _dte = ServiceProvider.GetService(typeof(DTE)) as DTE2;
 
             var container = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             _packageConverter = container.GetService<IPackageManagerConverter>();
 
-            var commandService = ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (commandService != null)
+            if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService commandService)
             {
                 var menuCommandID = new CommandID(CommandSet, CommandId);
                 var menuItem = new OleMenuCommand(MenuItemCallback, menuCommandID);
