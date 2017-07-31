@@ -2,12 +2,12 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="NuGetPackageConfigConverter.Taylor Southwick.dd0141da-d26f-4013-8b78-72723a313486" Version="0.1" Language="en-US" Publisher="Taylor Southwick" />
-    <DisplayName>NuGet Package to Project.json Converter</DisplayName>
-    <Description xml:space="preserve">Converts projects that are using NuGet v2 (ie packages.config) to NuGet v3 (project.json).</Description>
+    <DisplayName>NuGet PackageReference Updater</DisplayName>
+    <Description xml:space="preserve">Converts projects that are using packages.config or project.json to PackageReference</Description>
     <License>LICENSE</License>
     <Icon>Resources\VSPackage.ico</Icon>
     <PreviewImage>Preview.png</PreviewImage>
-    <Tags>NuGet, Project.json</Tags>
+    <Tags>NuGet, Project.json, packages.config, PackageReference</Tags>
   </Metadata>
   <Installation>
     <InstallationTarget Version="[15.0,16.0)" Id="Microsoft.VisualStudio.Community" />
