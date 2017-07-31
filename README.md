@@ -6,21 +6,20 @@ Download this extension from the [VS Gallery](https://visualstudiogallery.msdn.m
 
 ---------------------------------------
 
-This will convert projects that are using NuGet v2 (ie `packages.config`) to NuGet v3 (ie `project.json`). There are many benefits
-to using `project.json` even in non-.NET Core projects. Some of them include:
+This will convert projects that are using NuGet dependencies via `packages.config` or `project.json` to the newer `PackageReference` format. There are many benefits
+to using this new format even in non-.NET Core projects (where it is required). Some of them include:
 
 - Transitive dependencies are automatically included - you only need to include the dependencies you need
 - install.ps1/uninstal.ps1 is not run so arbitrary code is not run on install and uninstall from untrusted packages
 - Doesn't rewrite your project file
+- Doesn't add extra files to the project
 
-In order to run, right-click the Solution in `Solution Exporer` and click `Convert packages.config to project.json`: 
-
-If you are starting a new project, then run this before adding any packages. This will ensure that NuGet v3 will be used by placing an appropriate `project.json` in each project.
+In order to run, right-click the Solution in `Solution Exporer` and click `Upgrade to Package References`: 
 
 ![Invocation](docs/assets/readme/invoke.png)
 
 After selecting that, the project will be transformed as shown below. It is highly recommended that you perform this on a source-control enabled
-directory so you can easly undo if something goes wrong.
+directory so you can easily undo if something goes wrong.
 
 |  Before                                   | After                                   |
 |-------------------------------------------|-----------------------------------------|
