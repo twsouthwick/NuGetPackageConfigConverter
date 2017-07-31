@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace NuGetPackageConfigConverter
 {
@@ -56,9 +57,9 @@ namespace NuGetPackageConfigConverter
                 token.ThrowIfCancellationRequested();
 
                 model.Status = "Reloading solution";
-                RefreshSolution(sln);
+                RefreshSolution(sln, projects);
 
-                //InstallPackages(sln, packages, model, token);
+                InstallPackages(sln, packages, model, token);
             });
         }
 
@@ -167,11 +168,29 @@ namespace NuGetPackageConfigConverter
             }
         }
 
-        private static void RefreshSolution(Solution sln)
+        private static void RefreshSolution(Solution sln, IEnumerable<Project> projects)
         {
+            var projectPaths = projects.Select(p => p.FullName).ToList();
             var path = sln.FullName;
+
             sln.Close();
+
+            foreach (var project in projectPaths)
+            {
+                AddRestoreProjectStyle(project);
+            }
+
             sln.Open(path);
+        }
+
+        private static void AddRestoreProjectStyle(string path)
+        {
+            const string NS = "http://schemas.microsoft.com/developer/msbuild/2003";
+            var doc = XDocument.Load(path);
+            var properties = doc.Descendants(XName.Get("PropertyGroup", NS)).FirstOrDefault();
+            properties.LastNode.AddAfterSelf(new XElement(XName.Get("RestoreProjectStyle", NS), "PackageReference"));
+
+            doc.Save(path);
         }
 
         private void InstallPackages(Solution sln, IDictionary<string, IEnumerable<PackageConfigEntry>> installedPackages, ConverterUpdateViewModel model, CancellationToken token)
