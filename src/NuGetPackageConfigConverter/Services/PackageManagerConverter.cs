@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace NuGetPackageConfigConverter
 {
@@ -19,106 +20,70 @@ namespace NuGetPackageConfigConverter
         private readonly IVsPackageInstaller _installer;
         private readonly IVsPackageUninstaller _uninstaller;
         private readonly IVsPackageRestorer _restorer;
-        private readonly IVsFrameworkParser _frameworkParser;
         private readonly IConverterViewProvider _converterViewProvider;
+        private readonly IVsPackageInstallerServices _services;
 
         [ImportingConstructor]
         public PackageManagerConverter(
             IConverterViewProvider converterViewProvider,
+            IVsPackageInstallerServices services,
             IVsPackageInstaller installer,
             IVsPackageUninstaller uninstaller,
-            IVsPackageRestorer restorer,
-            IVsFrameworkParser frameworkParser)
+            IVsPackageRestorer restorer)
         {
             _converterViewProvider = converterViewProvider;
             _installer = installer;
+            _services = services;
             _uninstaller = uninstaller;
             _restorer = restorer;
-            _frameworkParser = frameworkParser;
         }
 
-        public bool NeedsConversion(Solution sln) => HasPackageConfig(sln) || !HasProjectJson(sln);
+        public bool NeedsConversion(Solution sln) => HasPackageConfig(sln) || HasProjectJson(sln);
 
         public Task ConvertAsync(Solution sln)
         {
             return _converterViewProvider.ShowAsync(sln, (model, token) =>
             {
                 var projects = sln.GetProjects()
-                    .Select(p => new
-                    {
-                        Project = p,
-                        Config = GetPackageConfig(p),
-                        ProjectJson = GetProjectJson(p)
-                    })
+                    .Where(p => HasPackageConfig(p) || HasProjectJson(p))
                     .ToList();
 
-                var items = projects
-                    .Where(p => p.Config != null)
-                    .ToDictionary(p => p.Project, p => p.Config);
-
-                var needsProjectJson = projects
-                    .Where(p => p.ProjectJson == null)
-                    .Select(p => p.Project);
-
-                model.Total = items.Count * 2 + 1;
+                model.Total = projects.Count * 2 + 1;
                 model.IsIndeterminate = false;
                 model.Count = 1;
 
-                var packages = RemoveAndCachePackages(items, model, token);
+                var packages = RemoveAndCachePackages(projects, model, token);
 
                 token.ThrowIfCancellationRequested();
 
-                AddProjectJson(needsProjectJson, token);
-
                 model.Status = "Reloading solution";
-                RefreshSolution(sln);
+                RefreshSolution(sln, projects);
 
                 InstallPackages(sln, packages, model, token);
             });
         }
 
-        private void AddProjectJson(IEnumerable<Project> projects, CancellationToken token)
+        private IDictionary<string, IEnumerable<PackageConfigEntry>> RemoveAndCachePackages(IEnumerable<Project> projects, ConverterUpdateViewModel model, CancellationToken token)
         {
+            var installedPackages = new Dictionary<string, IEnumerable<PackageConfigEntry>>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var project in projects)
             {
                 token.ThrowIfCancellationRequested();
 
-                var path = CreateProjectJson(project);
-                project.ProjectItems.AddFromFile(path);
-                project.Save();
-            }
-        }
+                model.Status = $"Removing old package format for '{project.Name}'";
 
-        private IDictionary<string, IEnumerable<PackageConfigEntry>> RemoveAndCachePackages(IEnumerable<KeyValuePair<Project, ProjectItem>> items, ConverterUpdateViewModel model, CancellationToken token)
-        {
-            var installedPackages = new Dictionary<string, IEnumerable<PackageConfigEntry>>(StringComparer.OrdinalIgnoreCase);
+                _restorer.RestorePackages(project);
 
-            foreach (var item in items)
-            {
-                token.ThrowIfCancellationRequested();
+                var packages = _services.GetInstalledPackages(project)
+                    .Select(p => new PackageConfigEntry(p.Id, p.VersionString))
+                    .ToArray();
 
-                var project = item.Key;
-                var config = item.Value;
+                installedPackages.Add(project.FullName, packages);
+                _restorer.RestorePackages(project);
 
-                model.Status = $"Removing package.config: {project.Name}";
-
-                var packages = PackageConfigEntry.ParseFile(config.FileNames[0]);
-
-                if (packages.Any())
-                {
-                    installedPackages.Add(project.FullName, packages);
-                    _restorer.RestorePackages(project);
-
-                    if (!RemovePackages(project, packages.Select(p => p.Id), token))
-                    {
-                        // Add warning that forcing deletion of package.config
-                        config.Delete();
-                    }
-                }
-                else
-                {
-                    config.Delete();
-                }
+                RemovePackages(project, packages.Select(p => p.Id), token);
+                RemoveDependencyFiles(project);
 
                 project.Save();
 
@@ -126,27 +91,6 @@ namespace NuGetPackageConfigConverter
             }
 
             return installedPackages;
-        }
-
-        private string CreateProjectJson(Project project)
-        {
-            var path = Path.Combine(Path.GetDirectoryName(project.FullName), "project.json");
-            var tfm = _frameworkParser.GetShortenedTfm(project);
-
-            var projectJson = @"{
-  ""dependencies"": {
-  },
-  ""frameworks"": {
-    ""[TFM]"": {}
-  },
-  ""runtimes"": {
-    ""win"": {}
-  }
-}".Replace("[TFM]", tfm);
-
-            File.WriteAllText(path, projectJson);
-
-            return path;
         }
 
         /// <summary>
@@ -195,28 +139,58 @@ namespace NuGetPackageConfigConverter
             return !retryCount.Values.Any(v => v >= maxRetry);
         }
 
-        private static bool HasPackageConfig(Solution sln)
-        {
-            foreach (var project in sln.GetProjects())
-            {
-                if (GetPackageConfig(project) != null)
-                {
-                    return true;
-                }
-            }
+        private static bool HasPackageConfig(Solution sln) => sln.GetProjects().Any(p => HasPackageConfig(p));
 
-            return false;
-        }
+        private static bool HasPackageConfig(Project project) => GetPackageConfig(project) != null;
 
-        private static bool HasProjectJson(Solution sln) => sln.GetProjects().All(p => GetProjectJson(p) != null);
+        private static bool HasProjectJson(Solution sln) => sln.GetProjects().Any(p => HasProjectJson(p));
+
+        private static bool HasProjectJson(Project project) => GetProjectJson(project) != null;
 
         private static ProjectItem GetPackageConfig(Project project) => GetProjectItem(project.ProjectItems, "packages.config");
 
-        private static void RefreshSolution(Solution sln)
+        private static void RemoveDependencyFiles(Project project)
         {
+            GetPackageConfig(project)?.Delete();
+
+            var projectJson = GetProjectJson(project);
+
+            if (projectJson != null)
+            {
+                var file = Path.Combine(Path.GetDirectoryName(projectJson.FileNames[0]), "project.lock.json");
+
+                projectJson.Delete();
+
+                if (File.Exists(file))
+                {
+                    File.Delete(file);
+                }
+            }
+        }
+
+        private static void RefreshSolution(Solution sln, IEnumerable<Project> projects)
+        {
+            var projectPaths = projects.Select(p => p.FullName).ToList();
             var path = sln.FullName;
+
             sln.Close();
+
+            foreach (var project in projectPaths)
+            {
+                AddRestoreProjectStyle(project);
+            }
+
             sln.Open(path);
+        }
+
+        private static void AddRestoreProjectStyle(string path)
+        {
+            const string NS = "http://schemas.microsoft.com/developer/msbuild/2003";
+            var doc = XDocument.Load(path);
+            var properties = doc.Descendants(XName.Get("PropertyGroup", NS)).FirstOrDefault();
+            properties.LastNode.AddAfterSelf(new XElement(XName.Get("RestoreProjectStyle", NS), "PackageReference"));
+
+            doc.Save(path);
         }
 
         private void InstallPackages(Solution sln, IDictionary<string, IEnumerable<PackageConfigEntry>> installedPackages, ConverterUpdateViewModel model, CancellationToken token)
@@ -227,10 +201,9 @@ namespace NuGetPackageConfigConverter
 
                 try
                 {
-                    IEnumerable<PackageConfigEntry> packages;
-                    if (installedPackages.TryGetValue(project.FullName, out packages))
+                    if (installedPackages.TryGetValue(project.FullName, out var packages))
                     {
-                        model.Status = $"Adding packages back via project.json: {project.Name}";
+                        model.Status = $"Adding packages: {project.Name}";
 
                         foreach (var package in packages)
                         {
@@ -263,8 +236,7 @@ namespace NuGetPackageConfigConverter
                 return null;
             }
 
-            return GetProjectItem(items, "project.json")
-                ?? GetProjectItem(items, $"{project.Name}.project.json");
+            return GetProjectItem(items, "project.json");
         }
 
         private static ProjectItem GetProjectItem(ProjectItems items, string name)

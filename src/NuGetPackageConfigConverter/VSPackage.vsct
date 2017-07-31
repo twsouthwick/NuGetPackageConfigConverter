@@ -18,7 +18,7 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Convert packages.config to project.json</ButtonText>
+          <ButtonText>Upgrade to Package References</ButtonText>
         </Strings>
       </Button>
     </Buttons>
