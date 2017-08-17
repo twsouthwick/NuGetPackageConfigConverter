@@ -21,7 +21,7 @@
     "Microsoft.VisualStudio.Utilities": "15.0.26109-RC3",
     "Microsoft.VisualStudio.Validation": "15.0.75",
     "Microsoft.VSSDK.BuildTools": "15.0.26124-RC3",
-    "NuGet.VisualStudio": "4.0.0-rc2",
+    "NuGet.VisualStudio": "4.3.0",
     "System.ValueTuple": "4.3.1"
   },
   "frameworks": {
