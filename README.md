@@ -1,4 +1,4 @@
-# NuGet Package to Project.json Converter
+# NuGet Package Updater
 
 [![Build status](https://ci.appveyor.com/api/projects/status/q1mkuttpcf3a3c03?svg=true)](https://ci.appveyor.com/project/twsouthwick/nugetpackageconfigconverter)
 
