@@ -1,6 +1,7 @@
 ### Installed product versions
-- Visual Studio: [example 2015 Professional]
+- Visual Studio: [example 2017 Professional]
 - This extension: [example 1.1.21]
+- Project types within the solution being converted
 
 ### Description
 Replace this text with a short description
