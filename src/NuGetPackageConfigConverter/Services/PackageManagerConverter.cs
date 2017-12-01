@@ -127,7 +127,7 @@ namespace NuGetPackageConfigConverter
                         Debug.WriteLine(e);
                     }
 
-                    retryCount.AddOrUpdate(package, 1, (_, count) => count++);
+                    retryCount.AddOrUpdate(package, 1, (_, count) => count + 1);
 
                     if (retryCount[package] < maxRetry)
                     {
