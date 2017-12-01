@@ -176,7 +176,7 @@
       <Version>7.10.6071</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes">
-      <Version>15.0.12</Version>
+      <Version>15.0.14</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.14.0">
       <Version>15.0.25414-Preview5</Version>
@@ -227,7 +227,7 @@
       <Version>15.3.32</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools">
-      <Version>15.5.72</Version>
+      <Version>15.5.100</Version>
     </PackageReference>
     <PackageReference Include="NuGet.VisualStudio">
       <Version>4.4.0</Version>
