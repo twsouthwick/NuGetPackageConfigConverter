@@ -52,15 +52,26 @@ namespace NuGetPackageConfigConverter
                 model.IsIndeterminate = false;
                 model.Count = 1;
 
+                RestoreAll(projects);
+
                 var packages = RemoveAndCachePackages(projects, model, token);
 
                 token.ThrowIfCancellationRequested();
 
-                model.Status = "Reloading solution";
+                RemoveDependencyFiles(projects);
+
                 RefreshSolution(sln, projects);
 
                 InstallPackages(sln, packages, model, token);
             });
+        }
+
+        private void RestoreAll(IEnumerable<Project> projects)
+        {
+            foreach (var project in projects)
+            {
+                _restorer.RestorePackages(project);
+            }
         }
 
         private IDictionary<string, IEnumerable<PackageConfigEntry>> RemoveAndCachePackages(IEnumerable<Project> projects, ConverterUpdateViewModel model, CancellationToken token)
@@ -73,19 +84,13 @@ namespace NuGetPackageConfigConverter
 
                 model.Status = $"Removing old package format for '{project.Name}'";
 
-                _restorer.RestorePackages(project);
-
                 var packages = _services.GetInstalledPackages(project)
                     .Select(p => new PackageConfigEntry(p.Id, p.VersionString))
                     .ToArray();
 
                 installedPackages.Add(project.FullName, packages);
-                _restorer.RestorePackages(project);
 
                 RemovePackages(project, packages.Select(p => p.Id), token);
-                RemoveDependencyFiles(project);
-
-                project.Save();
 
                 model.Count++;
             }
@@ -149,6 +154,14 @@ namespace NuGetPackageConfigConverter
 
         private static ProjectItem GetPackageConfig(Project project) => GetProjectItem(project.ProjectItems, "packages.config");
 
+        private void RemoveDependencyFiles(IEnumerable<Project> projects)
+        {
+            foreach(var project in projects)
+            {
+                RemoveDependencyFiles(project);
+            }
+        }
+
         private static void RemoveDependencyFiles(Project project)
         {
             GetPackageConfig(project)?.Delete();
@@ -166,6 +179,8 @@ namespace NuGetPackageConfigConverter
                     File.Delete(file);
                 }
             }
+
+            project.Save();
         }
 
         private static void RefreshSolution(Solution sln, IEnumerable<Project> projects)
