@@ -16,16 +16,28 @@ namespace NuGetPackageConfigConverter
                 {
                     foreach (var prj in GetSolutionFolderProjects(project))
                     {
-                        if (!string.IsNullOrEmpty(prj.FullName))
+                        if (!string.IsNullOrEmpty(GetProjectName(prj)))
                         {
                             yield return prj;
                         }
                     }
                 }
-                else if (!string.IsNullOrEmpty(project.FullName))
+                else if (!string.IsNullOrEmpty(GetProjectName(project)))
                 {
                     yield return project;
                 }
+            }
+        }
+
+        private static string GetProjectName(Project project)
+        {
+            try
+            {
+                return project.FullName;
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
 
