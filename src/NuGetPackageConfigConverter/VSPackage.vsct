@@ -1,13 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <Extern href="stdidcmd.h"/>
+  <Extern href="stdidcmd.h" />
 
-  <Extern href="vsshlids.h"/>
+  <Extern href="vsshlids.h" />
 
   <Commands package="guidVSPackage1">
     <Groups>
       <Group guid="guidVSPackage1CmdSet" id="MyMenuGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_SOLNNODE"/>
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_SOLNNODE" />
+      </Group>
+
+      <Group guid="ProjectNodeCmdSet" id="MyMenuGroup2" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
       </Group>
     </Groups>
 
@@ -21,23 +25,45 @@
           <ButtonText>Upgrade to Package References</ButtonText>
         </Strings>
       </Button>
+      <Button guid="ProjectNodeCmdSet" id="PackageSystemCleanCommandId" priority="0x0101" type="Button">
+        <Parent guid="ProjectNodeCmdSet" id="MyMenuGroup2" />
+        <Icon guid="guidImages1" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Invoke PackageReferenceCleaner</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Bitmaps>
-      <Bitmap guid="guidImages" href="Resources\PackageSystemUpdateCommand.png" usedList="bmpPic1"/>
+      <Bitmap guid="guidImages" href="Resources\PackageSystemUpdateCommand.png" usedList="bmpPic1" />
+      <Bitmap guid="guidImages1" href="Resources\PackageReferenceCleaner.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
   </Commands>
 
   <Symbols>
     <GuidSymbol name="guidVSPackage1" value="{d0c73e24-d906-4d3f-ab3c-4f5b6758394c}" />
 
+    <GuidSymbol name="ProjectNodeCmdSet" value="{FF2AF86F-C660-4BBE-BA8A-5218A12B506D}">
+      <IDSymbol name="MyMenuGroup2" value="0x1021" />
+      <IDSymbol name="PackageSystemCleanCommandId" value="0x0101" />
+    </GuidSymbol>
+
     <GuidSymbol name="guidVSPackage1CmdSet" value="{53c7366b-270d-4a41-afb7-ffcf007534a2}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="PackageSystemUpdateCommandId" value="0x0100" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidImages" value="{38678900-e246-4695-9831-795be8248893}" >
+    <GuidSymbol name="guidImages" value="{38678900-e246-4695-9831-795be8248893}">
       <IDSymbol name="bmpPic1" value="1" />
+    </GuidSymbol>
+  
+    <GuidSymbol value="{d7a7a25a-7b40-4a34-89f8-f7dc0aa346fb}" name="guidImages1">
+      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="bmpPic2" value="2" />
+      <IDSymbol name="bmpPicSearch" value="3" />
+      <IDSymbol name="bmpPicX" value="4" />
+      <IDSymbol name="bmpPicArrows" value="5" />
+      <IDSymbol name="bmpPicStrikethrough" value="6" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

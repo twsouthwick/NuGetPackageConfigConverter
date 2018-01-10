@@ -29,6 +29,7 @@ namespace NuGetPackageConfigConverter
             base.Initialize();
 
             PackageSystemUpdateCommand.Initialize(this);
+            PackageReferenceCleanerCommand.Initialize(this);
         }
     }
 }
