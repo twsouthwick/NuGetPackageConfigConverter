@@ -79,7 +79,7 @@
     <Compile Include="Services\IConverterViewProvider.cs" />
     <Compile Include="Services\ILogger.cs" />
     <Compile Include="Services\IPackageManagerConverter.cs" />
-    <Compile Include="Services\Logger.cs" />
+    <Compile Include="Services\OutputPaneLogger.cs" />
     <Compile Include="Services\PackageManagerConverter.cs" />
     <Compile Include="Services\PackageConfigEntry.cs" />
     <Compile Include="Commands\PackageSystemUpdateCommand.cs" />

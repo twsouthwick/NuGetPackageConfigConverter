@@ -1,11 +1,7 @@
-﻿using EnvDTE;
-
-namespace NuGetPackageConfigConverter
+﻿namespace NuGetPackageConfigConverter
 {
     public interface ILogger
     {
-        void Log(string txt);
-
-        void Init(Solution sln);
+        void WriteLine(string txt);
     }
 }

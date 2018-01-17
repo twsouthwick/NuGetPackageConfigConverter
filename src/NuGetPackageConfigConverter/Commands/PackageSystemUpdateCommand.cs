@@ -16,7 +16,6 @@ namespace NuGetPackageConfigConverter
         private readonly Package _package;
         private readonly IPackageManagerConverter _packageConverter;
         private readonly DTE2 _dte;
-        private readonly ILogger _logger;
 
         private PackageSystemUpdateCommand(Package package)
         {
@@ -25,7 +24,6 @@ namespace NuGetPackageConfigConverter
 
             var container = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             _packageConverter = container.GetService<IPackageManagerConverter>();
-            _logger = container.GetService<ILogger>();
 
             if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService commandService)
             {
@@ -54,7 +52,7 @@ namespace NuGetPackageConfigConverter
 
         private async void MenuItemCallback(object sender, EventArgs e)
         {
-            await _packageConverter.ConvertAsync(_dte.Solution, _logger);
+            await _packageConverter.ConvertAsync(_dte.Solution);
         }
     }
 }
