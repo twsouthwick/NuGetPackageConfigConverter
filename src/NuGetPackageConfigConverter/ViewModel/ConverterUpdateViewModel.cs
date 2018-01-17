@@ -22,6 +22,8 @@ namespace NuGetPackageConfigConverter
             _phase = "Loading program";
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public string Status
         {
             get { return _status; }
@@ -33,6 +35,7 @@ namespace NuGetPackageConfigConverter
             get { return _log; }
             set { UpdateProperty(ref _log, value); }
         }
+
         public string Phase
         {
             get { return _phase; }
@@ -56,8 +59,6 @@ namespace NuGetPackageConfigConverter
             get { return _isIndeterminate; }
             set { UpdateProperty(ref _isIndeterminate, value); }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         private void UpdateProperty<T>(ref T field, T value, IEqualityComparer<T> comparer = null, [CallerMemberName]string name = null)
         {

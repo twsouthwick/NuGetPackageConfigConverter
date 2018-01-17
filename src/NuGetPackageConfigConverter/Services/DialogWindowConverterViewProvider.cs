@@ -12,7 +12,7 @@ namespace NuGetPackageConfigConverter
     [Export(typeof(IConverterViewProvider))]
     public class DialogWindowConverterViewProvider : IConverterViewProvider
     {
-        public  async Task ShowAsync(Solution sln, Action<ConverterUpdateViewModel, CancellationToken> action)
+        public async Task ShowAsync(Solution sln, Action<ConverterUpdateViewModel, CancellationToken> action)
         {
             if (IsUnsaved(sln))
             {
@@ -78,7 +78,7 @@ namespace NuGetPackageConfigConverter
                     }
                     else
                     {
-                        var msg =  $"Package dependency update is complete. Some files may have been removed by uninstalling the packages and not added back. Please ensure project builds and runs before committing any changes. \n (Latest phase msg is: {model.Phase}";
+                        var msg = $"Package dependency update is complete. Some files may have been removed by uninstalling the packages and not added back. Please ensure project builds and runs before committing any changes. \n (Latest phase msg is: {model.Phase}";
                         MessageDialog.Show($"Conversion complete", msg, MessageDialogCommandSet.Ok);
                     }
                 }, taskScheduler);

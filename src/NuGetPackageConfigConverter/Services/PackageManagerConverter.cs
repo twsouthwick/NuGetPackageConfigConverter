@@ -41,9 +41,9 @@ namespace NuGetPackageConfigConverter
 
         public bool NeedsConversion(Solution sln) => HasPackageConfig(sln) || HasProjectJson(sln);
 
-        public Task ConvertAsync(Solution sln,ILogger log)
+        public Task ConvertAsync(Solution sln, ILogger log)
         {
-            logger= log;
+            logger = log;
             logger.Init(sln);
             return _converterViewProvider.ShowAsync(sln, (model, token) =>
             {
@@ -82,7 +82,6 @@ namespace NuGetPackageConfigConverter
                 InstallPackages(updatedProjects, packages, model, token);
 
                 logger.Log("Finished");
-
             });
         }
 
@@ -138,7 +137,6 @@ namespace NuGetPackageConfigConverter
         /// <param name="ids"></param>
         /// <param name="token"></param>
         /// <param name="model"></param>
-        /// <returns></returns>
         private bool RemovePackages(Project project, IEnumerable<string> ids, CancellationToken token,
             ConverterUpdateViewModel model)
         {
@@ -164,8 +162,6 @@ namespace NuGetPackageConfigConverter
                     model.Log = $"Uninstalled {package}";
                     logger.Log(model.Log);
                     counter = 0;
-
-
                 }
                 catch (Exception e)
                 {
@@ -216,7 +212,6 @@ namespace NuGetPackageConfigConverter
 
         private void RemoveDependencyFiles(IEnumerable<Project> projects, ConverterUpdateViewModel model)
         {
-
             foreach (var project in projects)
             {
                 model.Status = $"Removing dependency files for '{project.Name}'";
@@ -306,14 +301,17 @@ namespace NuGetPackageConfigConverter
                 countProjects++;
                 token.ThrowIfCancellationRequested();
                 var exist = installedPackages.TryGetValue(project.GetFullName(), out var packages);
-                var packagecount = (exist) ? packages.Count() : 0;
-                logger.Log(
-                    $"({countProjects}/{actualProjects.Count})  Project {project.Name}/{project.GetFullName()}, packages to install: {packagecount} ");
+                var packagecount = exist ? packages.Count() : 0;
+
+                logger.Log($"({countProjects}/{actualProjects.Count})  Project {project.Name}/{project.GetFullName()}, packages to install: {packagecount} ");
+
                 if (packagecount == 0)
+                {
                     continue;
+                }
+
                 try
                 {
-
                     model.Status =
                         $"({countProjects}/{actualProjects.Count})  Adding PackageReferences: {project.Name}";
                     int counter = 0;
@@ -338,7 +336,6 @@ namespace NuGetPackageConfigConverter
                         $"Added PackageReferences to {project.Name}/{project.FullName},  {counter} out of {packages.Count()} included";
                     logger.Log(model.Status);
                     model.Count++;
-
 
                     System.Threading.Thread.Sleep(1000);
                 }

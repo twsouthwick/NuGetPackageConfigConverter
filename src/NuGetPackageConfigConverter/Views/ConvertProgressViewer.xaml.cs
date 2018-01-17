@@ -9,8 +9,6 @@ namespace NuGetPackageConfigConverter
     {
         private readonly Action _close;
 
-        public ConverterUpdateViewModel Model => DataContext as ConverterUpdateViewModel;
-
         public ConvertProgressViewer(ConverterUpdateViewModel model, Action close)
         {
             _close = close;
@@ -18,6 +16,8 @@ namespace NuGetPackageConfigConverter
             DataContext = model;
             InitializeComponent();
         }
+
+        public ConverterUpdateViewModel Model => DataContext as ConverterUpdateViewModel;
 
         protected override void OnClosing(CancelEventArgs e)
         {

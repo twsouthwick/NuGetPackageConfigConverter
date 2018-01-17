@@ -1,26 +1,14 @@
-﻿using System.ComponentModel.Composition;
+﻿using EnvDTE;
+using System.ComponentModel.Composition;
 using System.IO;
-using EnvDTE;
 
 namespace NuGetPackageConfigConverter
 {
-    public interface ILogger
-    {
-        void Log(string txt);
-        void Init(Solution sln);
-    }
-
     [PartCreationPolicy(CreationPolicy.Shared)]
     [Export(typeof(ILogger))]
     public class Logger : ILogger
     {
         private StreamWriter logfile;
-
-        [ImportingConstructor]
-        public Logger()
-        {
-            
-        }
 
         public void Init(Solution sln)
         {
@@ -40,6 +28,5 @@ namespace NuGetPackageConfigConverter
         {
             logfile.Close();
         }
-
     }
 }

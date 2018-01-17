@@ -76,7 +76,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Services\DialogWindowConverterViewProvider.cs" />
-    <Compile Include="Services\IConverterUpdateProvider.cs" />
+    <Compile Include="Services\IConverterViewProvider.cs" />
+    <Compile Include="Services\ILogger.cs" />
     <Compile Include="Services\IPackageManagerConverter.cs" />
     <Compile Include="Services\Logger.cs" />
     <Compile Include="Services\PackageManagerConverter.cs" />

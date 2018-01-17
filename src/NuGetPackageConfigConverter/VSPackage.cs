@@ -24,7 +24,7 @@ namespace NuGetPackageConfigConverter
             // initialization is the Initialize method.
         }
 
-       protected override void Initialize()
+        protected override void Initialize()
         {
             base.Initialize();
 

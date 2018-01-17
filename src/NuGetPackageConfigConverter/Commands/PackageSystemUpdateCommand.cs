@@ -54,7 +54,7 @@ namespace NuGetPackageConfigConverter
 
         private async void MenuItemCallback(object sender, EventArgs e)
         {
-            await _packageConverter.ConvertAsync(_dte.Solution,_logger);
+            await _packageConverter.ConvertAsync(_dte.Solution, _logger);
         }
     }
 }

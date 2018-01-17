@@ -5,7 +5,7 @@ namespace NuGetPackageConfigConverter
 {
     public interface IPackageManagerConverter
     {
-        Task ConvertAsync(Solution sln,ILogger logger);
+        Task ConvertAsync(Solution sln, ILogger logger);
 
         bool NeedsConversion(Solution sln);
     }
