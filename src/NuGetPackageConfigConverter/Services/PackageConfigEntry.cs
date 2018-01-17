@@ -5,11 +5,11 @@
         public PackageConfigEntry(string id, string version)
         {
             Id = id;
-            Version = version;
+            Version = version??"";
         }
 
         public string Id { get; }
 
-        public string Version { get; }
+        public string Version { get; } 
     }
 }

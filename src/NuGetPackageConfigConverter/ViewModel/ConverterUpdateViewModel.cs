@@ -10,6 +10,8 @@ namespace NuGetPackageConfigConverter
         private int _total;
         private int _count;
         private bool _isIndeterminate;
+        private string _phase;
+        private string _log;
 
         public ConverterUpdateViewModel()
         {
@@ -17,12 +19,24 @@ namespace NuGetPackageConfigConverter
             _isIndeterminate = true;
             _count = 0;
             _total = 0;
+            _phase = "Loading program";
         }
 
         public string Status
         {
             get { return _status; }
             set { UpdateProperty(ref _status, value); }
+        }
+
+        public string Log
+        {
+            get { return _log; }
+            set { UpdateProperty(ref _log, value); }
+        }
+        public string Phase
+        {
+            get { return _phase; }
+            set { UpdateProperty(ref _phase, value); }
         }
 
         public int Total
