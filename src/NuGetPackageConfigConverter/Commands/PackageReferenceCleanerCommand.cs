@@ -1,6 +1,9 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using System.Globalization;
+using System.Threading;
+using EnvDTE;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -25,6 +28,7 @@ namespace NuGetPackageConfigConverter
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly Package package;
+        private readonly PackageReferenceCleaner _cleaner;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageReferenceCleanerCommand"/> class.
@@ -41,6 +45,10 @@ namespace NuGetPackageConfigConverter
                 var menuItem = new MenuCommand(this.MenuItemCallback, menuCommandID);
                 commandService.AddCommand(menuItem);
             }
+
+
+            var container = ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            _cleaner = container.GetService<PackageReferenceCleaner>();
         }
 
         /// <summary>
@@ -79,19 +87,14 @@ namespace NuGetPackageConfigConverter
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event args.</param>
-        private void MenuItemCallback(object sender, EventArgs e)
+        private async void MenuItemCallback(object sender, EventArgs e)
         {
-            string message = string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.GetType().FullName);
-            string title = "PackageReferenceCleaner";
+            var project = Selection.GetSelection<Project>();
 
-            // Show a message box to prove we were here
-            VsShellUtilities.ShowMessageBox(
-                this.ServiceProvider,
-                message,
-                title,
-                OLEMSGICON.OLEMSGICON_INFO,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            if (project != null)
+            {
+                await _cleaner.CleanAsync(project, CancellationToken.None);
+            }
         }
     }
 }

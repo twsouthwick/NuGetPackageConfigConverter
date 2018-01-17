@@ -29,7 +29,7 @@ namespace NuGetPackageConfigConverter
             {
                 var menuCommandID = new CommandID(CommandSet, CommandId);
                 var menuItem = new OleMenuCommand(MenuItemCallback, menuCommandID);
-                menuItem.BeforeQueryStatus += MenuItemBeforeQueryStatus;
+                //menuItem.BeforeQueryStatus += MenuItemBeforeQueryStatus;
                 commandService.AddCommand(menuItem);
             }
         }
