@@ -1,3 +1,7 @@
+# Project Archived (12/17/2018)
+
+This project will not be maintained as support for converting to PackageReference is included in VS 15.7+: https://docs.microsoft.com/en-us/nuget/reference/migrate-packages-config-to-package-reference.
+
 # NuGet Package Updater
 
 [![Build status](https://ci.appveyor.com/api/projects/status/q1mkuttpcf3a3c03?svg=true)](https://ci.appveyor.com/project/twsouthwick/nugetpackageconfigconverter)
